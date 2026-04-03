@@ -132,11 +132,6 @@ nvidia_vma_access(
     NvBool bIsNuma = NV_FALSE;
     int ret = -EINVAL;
 
-    bIsNuma = pfn_valid(mmap_context->access_start >> PAGE_SHIFT);
-
-    pageIndex = (offsInVma >> PAGE_SHIFT);
-    pageOffset = (offsInVma & ~PAGE_MASK);
-
     if (length < 0)
     {
         return -EINVAL;
@@ -151,6 +146,11 @@ nvidia_vma_access(
     }
 
     mmap_context = &(*pfile_mapping_list)->context;
+
+    bIsNuma = pfn_valid(mmap_context->access_start >> PAGE_SHIFT);
+
+    pageIndex = (offsInVma >> PAGE_SHIFT);
+    pageOffset = (offsInVma & ~PAGE_MASK);
 
     if (write && !(mmap_context->prot & NV_PROTECT_WRITEABLE))
     {
@@ -190,7 +190,7 @@ nvidia_vma_access(
     {
         NvU64 idx = 0;
         NvU64 curOffs = 0;
-        
+
         for(; idx < mmap_context->memArea.numRanges; idx++)
         {
             NvU64 nextOffs = mmap_context->memArea.pRanges[idx].size + curOffs;
@@ -235,7 +235,7 @@ found:
         kernel_mapping = ((char *)kernel_mapping - pageOffset);
         os_unmap_kernel_space(kernel_mapping, PAGE_SIZE);
     }
-done: 
+done:
     nv_release_file_va(&nvlfp->nvfp, NV_FALSE);
     return ret;
 }
@@ -383,7 +383,7 @@ int nv_encode_caching(
             if (NV_ALLOW_WRITE_COMBINING(memory_type))
             {
 #if defined(NVCPU_RISCV64)
-                /* 
+                /*
                  * Don't attempt to mark sysmem pages as write combined on riscv.
                  * Bug 5404055 to clean up this check.
                  */
@@ -626,7 +626,7 @@ int nvidia_mmap_helper(
             else
             {
                 if (nv_encode_caching(&vma->vm_page_prot,
-                        rm_disable_iomap_wc() ? NV_MEMORY_UNCACHED : mmap_context->caching, 
+                        rm_disable_iomap_wc() ? NV_MEMORY_UNCACHED : mmap_context->caching,
                         NV_MEMORY_TYPE_FRAMEBUFFER))
                 {
                     if (nv_encode_caching(&vma->vm_page_prot,
@@ -779,7 +779,7 @@ int nvidia_mmap_helper(
 
     vma->vm_ops = &nv_vm_ops;
     ret = 0;
-done: 
+done:
     nv_release_file_va(&nvlfp->nvfp, NV_FALSE);
     return ret;
 }
